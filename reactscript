@@ -1,0 +1,100 @@
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+export default function WorldleScoreApp() {
+  const [players, setPlayers] = useState([]);
+  const [newPlayer, setNewPlayer] = useState('');
+  const [round, setRound] = useState(1);
+  const [scores, setScores] = useState({});
+
+  const addPlayer = () => {
+    if (newPlayer.trim() !== '') {
+      setPlayers([...players, newPlayer.trim()]);
+      setScores({ ...scores, [newPlayer.trim()]: [] });
+      setNewPlayer('');
+    }
+  };
+
+  const updateScore = (player, attempt) => {
+    const updatedScores = { ...scores };
+    updatedScores[player][round - 1] = parseInt(attempt, 10);
+    setScores(updatedScores);
+  };
+
+  const nextRound = () => {
+    setRound(round + 1);
+    players.forEach(player => {
+      if (!scores[player]) scores[player] = [];
+      scores[player][round] = 0;
+    });
+  };
+
+  const getTotal = player => {
+    return (scores[player] || []).reduce((sum, val) => sum + (val || 0), 0);
+  };
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-4">Worldle Score Tracker</h1>
+
+      <Card className="mb-4">
+        <CardContent>
+          <h2 className="text-xl mb-2">Add Players</h2>
+          <div className="flex space-x-2 mb-2">
+            <Input
+              placeholder="Player Name"
+              value={newPlayer}
+              onChange={e => setNewPlayer(e.target.value)}
+            />
+            <Button onClick={addPlayer}>Add</Button>
+          </div>
+          <div>
+            {players.map(player => (
+              <span key={player} className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm mr-2 mb-2">
+                {player}
+              </span>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {players.length > 0 && (
+        <Card>
+          <CardContent>
+            <h2 className="text-xl mb-2">Round {round} Scores</h2>
+            {players.map(player => (
+              <div key={player} className="mb-2">
+                <label className="block mb-1">{player}'s Attempts</label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="6"
+                  placeholder="Enter attempts (1-6)"
+                  value={scores[player] ? scores[player][round - 1] || '' : ''}
+                  onChange={e => updateScore(player, e.target.value)}
+                />
+              </div>
+            ))}
+            <Button className="mt-4" onClick={nextRound}>Next Round</Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {players.length > 0 && (
+        <Card className="mt-4">
+          <CardContent>
+            <h2 className="text-xl mb-2">Leaderboard</h2>
+            {players.map(player => (
+              <div key={player} className="flex justify-between border-b py-1">
+                <span>{player}</span>
+                <span>{getTotal(player)} pts</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
